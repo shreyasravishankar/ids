@@ -1,0 +1,21 @@
+import socket, threading, time
+print_lock = threading.Lock()
+host = input("Domain Name: ")
+ip = socket.gethostbyname(host)
+print("-" * 60)
+print(f"Scanning Start Target IP")
+print("-" * 60)
+def port_scanner(port):
+    soc = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    soc.settimeout(1)
+    result = soc.connect_ex((ip, port))
+    if not result:
+        try:
+            serviceName = socket.getservbyport(port)
+            print(f"Open {port} {serviceName} \n")
+        except:
+            print(f"Open {port} unknown \n")
+    soc.close()
+for port in range(1, 1025):
+    th = threading.Thread(target=port_scanner, args=(port, ))
+    th.start()
